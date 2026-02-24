@@ -5,6 +5,8 @@ namespace App\Http\Livewire;
 use Livewire\Component;
 use App\Models\Empresa;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\MailTest;
 
 class Modelo347 extends Component
 {
@@ -15,11 +17,16 @@ class Modelo347 extends Component
     public $anios = [];
     public $resultados = [];
 
+    // Propiedades para el modal de email
+    public $showEmailModal = false;
+    public $emailTo = '';
+    public $emailSubject = '';
+    public $emailBody = '';
+    public $selectedRow = null;
+
     public function mount()
     {
         // Obtener la lista de empresas, ordenadas alfabéticamente
-        // Asumo que el campo de nombre puede llamarse 'raz_social' o 'nombre'.
-        // Si no existe uno, probar con el otro en la vista.
         $this->empresas = Empresa::all();
 
         // Generar lista de años (el actual y los 5 últimos)
@@ -28,7 +35,6 @@ class Modelo347 extends Component
             $this->anios[] = $currentYear - $i;
         }
 
-        // Por defecto pre-seleccionar el año más reciente (opcional)
         $this->anio = $currentYear;
     }
 
@@ -39,29 +45,25 @@ class Modelo347 extends Component
             'anio' => 'required|numeric'
         ]);
 
-        // Realizamos la consulta para agrupar las facturas por NIF y Razón Social
-        // Separando los totales por trimestres (T1, T2, T3, T4)
-        // Hacemos LEFT JOIN con 'entidades' para sacar su 'razon_social' o 'nombre'
-        // si en la factura está vacío.
         $resultadosRaw = DB::table('d_frav_cab')
             ->leftJoin('entidades', 'd_frav_cab.cliente_id', '=', 'entidades.id')
             ->select(
-                'd_frav_cab.nif',
-                DB::raw("COALESCE(NULLIF(TRIM(d_frav_cab.raz_social), ''), entidades.razon_social, entidades.nombre, 'Sin Nombre') as raz_social_calculada"),
-                DB::raw('SUM(d_frav_cab.baseimp + d_frav_cab.impiva) as total_anual'),
-                DB::raw('SUM(CASE WHEN MONTH(d_frav_cab.fecha_emision) BETWEEN 1 AND 3 THEN d_frav_cab.baseimp + d_frav_cab.impiva ELSE 0 END) as t1'),
-                DB::raw('SUM(CASE WHEN MONTH(d_frav_cab.fecha_emision) BETWEEN 4 AND 6 THEN d_frav_cab.baseimp + d_frav_cab.impiva ELSE 0 END) as t2'),
-                DB::raw('SUM(CASE WHEN MONTH(d_frav_cab.fecha_emision) BETWEEN 7 AND 9 THEN d_frav_cab.baseimp + d_frav_cab.impiva ELSE 0 END) as t3'),
-                DB::raw('SUM(CASE WHEN MONTH(d_frav_cab.fecha_emision) BETWEEN 10 AND 12 THEN d_frav_cab.baseimp + d_frav_cab.impiva ELSE 0 END) as t4')
-            )
+            'd_frav_cab.nif',
+            'entidades.mail_ppal',
+            DB::raw("COALESCE(NULLIF(TRIM(d_frav_cab.raz_social), ''), entidades.razon_social, entidades.nombre, 'Sin Nombre') as raz_social_calculada"),
+            DB::raw('SUM(d_frav_cab.baseimp + d_frav_cab.impiva) as total_anual'),
+            DB::raw('SUM(CASE WHEN MONTH(d_frav_cab.fecha_emision) BETWEEN 1 AND 3 THEN d_frav_cab.baseimp + d_frav_cab.impiva ELSE 0 END) as t1'),
+            DB::raw('SUM(CASE WHEN MONTH(d_frav_cab.fecha_emision) BETWEEN 4 AND 6 THEN d_frav_cab.baseimp + d_frav_cab.impiva ELSE 0 END) as t2'),
+            DB::raw('SUM(CASE WHEN MONTH(d_frav_cab.fecha_emision) BETWEEN 7 AND 9 THEN d_frav_cab.baseimp + d_frav_cab.impiva ELSE 0 END) as t3'),
+            DB::raw('SUM(CASE WHEN MONTH(d_frav_cab.fecha_emision) BETWEEN 10 AND 12 THEN d_frav_cab.baseimp + d_frav_cab.impiva ELSE 0 END) as t4')
+        )
             ->where('d_frav_cab.empresa_id', $this->empresa_id)
             ->whereYear('d_frav_cab.fecha_emision', $this->anio)
-            ->groupBy('d_frav_cab.nif', 'raz_social_calculada')
+            ->groupBy('d_frav_cab.nif', 'raz_social_calculada', 'entidades.mail_ppal')
             ->having('total_anual', '>', 3005.06)
             ->orderBy('raz_social_calculada')
             ->get();
 
-        // Convertimos a array y mapeamos para restaurar la variable y darle formato
         $this->resultados = $resultadosRaw->map(function ($item) {
             $item->raz_social = $item->raz_social_calculada;
             $item->total_anual = round($item->total_anual, 2);
@@ -69,8 +71,83 @@ class Modelo347 extends Component
             $item->t2 = round($item->t2, 2);
             $item->t3 = round($item->t3, 2);
             $item->t4 = round($item->t4, 2);
-            return (array) $item;
+            return (array)$item;
         })->toArray();
+    }
+
+    public function prepareEmail($nif)
+    {
+        // Usar helper collect de forma segura o importar si es necesario
+        $this->selectedRow = \Illuminate\Support\Arr::first($this->resultados, function ($value) use ($nif) {
+            return $value['nif'] === $nif;
+        });
+
+        if (!$this->selectedRow)
+            return;
+
+        $empresaEmisora = Empresa::find($this->empresa_id);
+        $nombreEmisora = $empresaEmisora ? ($empresaEmisora->raz_social ?? $empresaEmisora->nombre) : 'Nuestra Empresa';
+
+        $this->emailTo = $this->selectedRow['mail_ppal'] ?? '';
+        $this->emailSubject = "INFORME MODELO 347 DE " . $nombreEmisora;
+
+        $body = "Adjunto remitimos el resumen anual del modelo 347 de las facturas emitidas por " . $nombreEmisora;
+        $body .= " del año " . $this->anio . " a la entidad " . $this->selectedRow['raz_social'] . " y su cif " . $this->selectedRow['nif'] . ".\n\n";
+        $body .= "Datos del informe:\n";
+        $body .= "--------------------------\n";
+        $body .= "Total Anual: " . number_format($this->selectedRow['total_anual'], 2, ',', '.') . " €\n";
+        $body .= "1er Trimestre: " . number_format($this->selectedRow['t1'], 2, ',', '.') . " €\n";
+        $body .= "2do Trimestre: " . number_format($this->selectedRow['t2'], 2, ',', '.') . " €\n";
+        $body .= "3er Trimestre: " . number_format($this->selectedRow['t3'], 2, ',', '.') . " €\n";
+        $body .= "4to Trimestre: " . number_format($this->selectedRow['t4'], 2, ',', '.') . " €";
+
+        $this->emailBody = $body;
+        $this->showEmailModal = true;
+    }
+    public function sendEmailTest()
+    {
+        Mail::queue(new MailTest());
+    }
+
+    public function sendEmail()
+    {
+        // Forzamos que si el campo está vacío por algún motivo, no rompa la validación silenciosamente
+        if (empty($this->emailTo)) {
+            $this->dispatchBrowserEvent('swal:error', [
+                'title' => 'Error',
+                'text' => 'El campo destinatario es obligatorio.'
+            ]);
+            return;
+        }
+
+        try {
+            // Usamos Mail::send con una clausula simple para asegurar el envío
+            Mail::raw($this->emailBody, function ($message) {
+                $message->from('intranext@intranext.es', 'Intranext')
+                    ->to($this->emailTo)
+                    ->subject($this->emailSubject);
+            });
+
+            // Si llegamos aquí, el envío no ha lanzado excepción
+            $this->showEmailModal = false;
+
+            $this->dispatchBrowserEvent('swal:alert', [
+                'icon' => 'success',
+                'title' => '¡Enviado!',
+                'text' => 'El email se ha enviado correctamente a ' . $this->emailTo
+            ]);
+
+        }
+        catch (\Exception $e) {
+            // Si hay un error, lo mostramos claramente
+            $this->dispatchBrowserEvent('swal:error', [
+                'title' => 'Error de envío',
+                'text' => $e->getMessage()
+            ]);
+
+            // Log para revisión técnica si fuera necesario
+            \Illuminate\Support\Facades\Log::error("Error enviando 347: " . $e->getMessage());
+        }
     }
 
     // Exportación nativa a CSV

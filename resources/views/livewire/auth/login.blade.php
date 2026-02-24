@@ -8,7 +8,7 @@
         <div class="d-flex justify-content-center align-items-center gap-4 mb-4 mt-n2 px-3 flex-wrap">
             <div
                 style="background: rgba(255, 255, 255, 0.9); width: 155px; height: 85px; border-radius: 12px; box-shadow: 0 4px 15px rgba(255,255,255,0.3); display: flex; align-items: center; justify-content: center; padding: 10px;">
-                <img src="/imagenes/logo-axis-gestora_600.png" alt="Logo Axis Gestora"
+                <img src="/imagenes/logo-axis-gestora_600.png" alt="Logo Intranext"
                     style="max-width: 100%; max-height: 100%; height: auto; width: auto; display: block;">
             </div>
             <div

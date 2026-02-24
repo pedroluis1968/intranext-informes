@@ -84,13 +84,5 @@
             <h1>Gestión de Inmuebles</h1>
             <p>Administración y asignación de viviendas, locales y garajes por promoción.</p>
         </div>
-    @elseif($activePage == 'mensajes')
-        <div class="page-header-icon" style="background: rgba(3, 169, 244, 0.15);">
-            <i class="bi bi-chat-left-dots-fill" style="font-size: 2.2rem; color: #03a9f4;"></i>
-        </div>
-        <div class="page-header-text">
-            <h1>Bandeja de Mensajes</h1>
-            <p>Comunícate internamente con otros miembros y la gestoría.</p>
-        </div>
     @endif
 </div>

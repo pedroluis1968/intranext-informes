@@ -4,4 +4,4 @@
 
     <?php $__env->endSlot(); ?>
 <?php echo $__env->renderComponent(); ?>
-<?php /**PATH C:\proyectos_ia\intranext-informes\vendor\livewire\livewire\src/Macros/livewire-view-component.blade.php ENDPATH**/ ?>
+<?php /**PATH C:\intranext-informes\vendor\livewire\livewire\src/Macros/livewire-view-component.blade.php ENDPATH**/ ?>

@@ -57,8 +57,6 @@
         @elseif($activePage == 'configuracion')
             @include('livewire.partials.sections.configuracion')
 
-        @elseif($activePage == 'mensajes')
-            @livewire('mailbox', ['draftEmail' => $draftEmail])
 
         @endif
     </div>

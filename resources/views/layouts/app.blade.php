@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Intranext - Axis Gestora</title>
+    <title>Intranext - Informes</title>
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -187,9 +187,6 @@
             background: linear-gradient(45deg, #f5f3ff 0%, #ede9fe 100%);
         }
 
-        .bg-mensajes {
-            background: linear-gradient(45deg, #e3f2fd 0%, #bbdefb 100%);
-        }
 
         .bg-inmuebles {
             background: linear-gradient(45deg, #fff5f5 0%, #f0e4e4 100%);
@@ -391,17 +388,6 @@
                             <span class="link-title fw-bold fs-5">Usuarios</span>
                         </a>
                     </li>
-                    <!-- Mensajes -->
-                    <li class="nav-item mb-1" id="menu-mensajes">
-                        <a href="javascript:void(0)" class="nav-link d-flex align-items-center py-2"
-                            onclick="window.Livewire.emit('switchPage', 'mensajes'); markActive('mensajes');">
-                            <div class="icon-container rounded-3 d-flex align-items-center justify-content-center me-3"
-                                style="width: 45px; height: 45px; background: rgba(3, 169, 244, 0.15);">
-                                <i class="bi bi-chat-left-dots-fill" style="font-size: 1.6rem; color: #03a9f4;"></i>
-                            </div>
-                            <span class="link-title fw-bold fs-5">Mensajes</span>
-                        </a>
-                    </li>
                 </ul>
 
 
@@ -497,12 +483,12 @@
                             </div>
                             <div class="list-group-item d-flex align-items-center py-2">
                                 <div
-                                    class="wd-30 ht-30 d-flex align-items-center justify-content-center bg-success rounded-circle me-3">
-                                    <i class="icon-sm text-white" data-feather="file-text"></i>
+                                    class="wd-30 ht-30 d-flex align-items-center justify-content-center bg-info rounded-circle me-3">
+                                    <i class="icon-sm text-white" data-feather="info"></i>
                                 </div>
                                 <div>
-                                    <p class="mb-0">Firma de contratos Axis Gestora</p>
-                                    <small class="text-muted">hace 2 días</small>
+                                    <p class="mb-0">Bienvenidos al sistema de Informes</p>
+                                    <small class="text-muted">Recién llegado</small>
                                 </div>
                             </div>
                         </div>
@@ -565,7 +551,7 @@
             }
 
             // Cambiar fondo dinámicamente
-            $('.page-wrapper').removeClass('bg-escritorio bg-expectantes bg-cooperativas bg-socios bg-contactos bg-inmuebles bg-promociones bg-perfil bg-configuracion bg-mensajes')
+            $('.page-wrapper').removeClass('bg-escritorio bg-expectantes bg-cooperativas bg-socios bg-contactos bg-inmuebles bg-promociones bg-perfil bg-configuracion')
                 .addClass('bg-' + page);
 
             // Cerramos sidebar en mobile si está abierto

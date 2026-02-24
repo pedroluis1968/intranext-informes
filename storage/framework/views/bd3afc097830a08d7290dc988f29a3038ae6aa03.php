@@ -39,4 +39,4 @@
 
 </body>
 
-</html><?php /**PATH C:\proyectos_ia\intranext-informes\resources\views/layouts/tailwind.blade.php ENDPATH**/ ?>
+</html><?php /**PATH C:\intranext-informes\resources\views/layouts/tailwind.blade.php ENDPATH**/ ?>

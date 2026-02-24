@@ -272,7 +272,7 @@
                                         $viewEmails = array_unique(array_filter(array_merge([$userToView->email], explode('<br>', $userToView->emails_list ?? ''))));
                                     @endphp
                                     @forelse($viewEmails as $ind => $e)
-                                        <a href="#" wire:click.prevent="openMailboxWith('{{ trim($e) }}')" title="Enviar email" class="text-sm fw-semibold text-decoration-none" style="font-size: 14px; color: #135bec; display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; background: rgba(19, 91, 236, 0.05); border-radius: 6px; width: fit-content;">
+                                        <a href="mailto:{{ trim($e) }}" title="Enviar email" class="text-sm fw-semibold text-decoration-none" style="font-size: 14px; color: #135bec; display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; background: rgba(19, 91, 236, 0.05); border-radius: 6px; width: fit-content;">
                                             {{ trim($e) }} {!! $ind===0 ? '<span class="badge bg-primary rounded-pill flex-shrink-0" style="font-size: 9px; padding: 2px 6px;">Ppal</span>' : '' !!}
                                         </a>
                                     @empty

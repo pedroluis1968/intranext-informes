@@ -1,0 +1,1 @@
+aaaa<?php /**PATH C:\intranext-informes\resources\views/emails/test.blade.php ENDPATH**/ ?>

@@ -119,19 +119,6 @@ class Desktop extends Component
     public $perfilPasswordConfirmation;
     public $perfilAvatar;
 
-    // Propiedades de Correo Webmail
-    public $perfilMailEnabled = false;
-    public $perfilMailAddress = '';
-    public $perfilMailPop3Host = '';
-    public $perfilMailPop3Port = 110;
-    public $perfilMailPop3User = '';
-    public $perfilMailPop3Pass = '';
-    public $perfilMailPop3Encryption = '';
-    public $perfilMailSmtpHost = '';
-    public $perfilMailSmtpPort = 587;
-    public $perfilMailSmtpUser = '';
-    public $perfilMailSmtpPass = '';
-    public $perfilMailSmtpEncryption = 'tls';
 
     // Propiedades de Usuarios
     public $selectedUserId = null;
@@ -149,7 +136,6 @@ class Desktop extends Component
     public $userDomicilio, $userCPostal, $userProvinciaId, $userPoblacionId;
     public $userTelefonos = [];
     public $userEmailsList = [];
-    public $draftEmail = null;
 
     public function updatedUserProvinciaId()
     {
@@ -179,44 +165,6 @@ class Desktop extends Component
             $this->perfilPasswordConfirmation = '';
             $this->perfilAvatar = null;
 
-            // Cargar configuración de Webmail
-            $mailSettings = DB::table('user_mail_settings')->where('user_id', $user->id)->first();
-            if ($mailSettings) {
-                $this->perfilMailEnabled = $mailSettings->is_enabled;
-                $this->perfilMailAddress = $mailSettings->email_address;
-                $this->perfilMailPop3Host = $mailSettings->pop3_host;
-                $this->perfilMailPop3Port = $mailSettings->pop3_port;
-                $this->perfilMailPop3User = $mailSettings->pop3_username;
-                try {
-                    $this->perfilMailPop3Pass = $mailSettings->pop3_password ? \Illuminate\Support\Facades\Crypt::decryptString($mailSettings->pop3_password) : '';
-                } catch (\Exception $e) {
-                    $this->perfilMailPop3Pass = '';
-                }
-                $this->perfilMailPop3Encryption = $mailSettings->pop3_encryption;
-
-                $this->perfilMailSmtpHost = $mailSettings->smtp_host;
-                $this->perfilMailSmtpPort = $mailSettings->smtp_port;
-                $this->perfilMailSmtpUser = $mailSettings->smtp_username;
-                try {
-                    $this->perfilMailSmtpPass = $mailSettings->smtp_password ? \Illuminate\Support\Facades\Crypt::decryptString($mailSettings->smtp_password) : '';
-                } catch (\Exception $e) {
-                    $this->perfilMailSmtpPass = '';
-                }
-                $this->perfilMailSmtpEncryption = $mailSettings->smtp_encryption;
-            } else {
-                $this->perfilMailEnabled = false;
-                $this->perfilMailAddress = $user->email ?? '';
-                $this->perfilMailPop3Host = '';
-                $this->perfilMailPop3Port = 110;
-                $this->perfilMailPop3User = '';
-                $this->perfilMailPop3Pass = '';
-                $this->perfilMailPop3Encryption = '';
-                $this->perfilMailSmtpHost = '';
-                $this->perfilMailSmtpPort = 587;
-                $this->perfilMailSmtpUser = '';
-                $this->perfilMailSmtpPass = '';
-                $this->perfilMailSmtpEncryption = 'tls';
-            }
         }
     }
 
@@ -236,9 +184,6 @@ class Desktop extends Component
             $rules['perfilAvatar'] = 'image|max:3072'; // 3MB Max
         }
 
-        if ($this->perfilMailEnabled) {
-            $rules['perfilMailAddress'] = 'required|email';
-        }
 
         $this->validate($rules);
 
@@ -254,32 +199,6 @@ class Desktop extends Component
         }
 
         DB::table('users')->where('id', $user->id)->update($data);
-
-        // Guardar configuración de Webmail
-        $mailData = [
-            'is_enabled' => $this->perfilMailEnabled,
-            'email_address' => $this->perfilMailAddress,
-            'pop3_host' => $this->perfilMailPop3Host ?: null,
-            'pop3_port' => $this->perfilMailPop3Port ?: 110,
-            'pop3_username' => $this->perfilMailPop3User ?: null,
-            'pop3_password' => $this->perfilMailPop3Pass ? \Illuminate\Support\Facades\Crypt::encryptString($this->perfilMailPop3Pass) : null,
-            'pop3_encryption' => $this->perfilMailPop3Encryption ?: null,
-            'smtp_host' => $this->perfilMailSmtpHost ?: null,
-            'smtp_port' => $this->perfilMailSmtpPort ?: 587,
-            'smtp_username' => $this->perfilMailSmtpUser ?: null,
-            'smtp_password' => $this->perfilMailSmtpPass ? \Illuminate\Support\Facades\Crypt::encryptString($this->perfilMailSmtpPass) : null,
-            'smtp_encryption' => $this->perfilMailSmtpEncryption ?: null,
-            'updated_at' => now()
-        ];
-
-        $existsMail = DB::table('user_mail_settings')->where('user_id', $user->id)->exists();
-        if ($existsMail) {
-            DB::table('user_mail_settings')->where('user_id', $user->id)->update($mailData);
-        } else {
-            $mailData['user_id'] = $user->id;
-            $mailData['created_at'] = now();
-            DB::table('user_mail_settings')->insert($mailData);
-        }
 
         // NO LIMPIAR LOS DATOS DE CORREO, ya que los está visualizando
 
@@ -409,7 +328,8 @@ class Desktop extends Component
                 ]);
 
                 $msg = 'Modificaciones registradas correctamente.';
-            } else {
+            }
+            else {
                 // MODO ALTA
                 // 1. Crear Entidad
                 $entidadId = DB::table('entidades')->insertGetId([
@@ -453,7 +373,8 @@ class Desktop extends Component
                 'title' => '¡Éxito!',
                 'text' => $msg
             ]);
-        } catch (\Exception $e) {
+        }
+        catch (\Exception $e) {
             DB::rollBack();
             session()->flash('error', 'Error al guardar: ' . $e->getMessage());
         }
@@ -492,7 +413,8 @@ class Desktop extends Component
                     'title' => '¡Eliminada!',
                     'text' => 'La cooperativa ha sido eliminada correctamente.'
                 ]);
-            } catch (\Exception $e) {
+            }
+            catch (\Exception $e) {
                 DB::rollBack();
                 $this->emit('swal:alert', [
                     'type' => 'error',
@@ -537,13 +459,13 @@ class Desktop extends Component
         $exp = DB::table('mod110_expectantes')
             ->join('entidades', 'mod110_expectantes.entidad_id', '=', 'entidades.id')
             ->select(
-                'mod110_expectantes.comentario as exp_comentario',
-                'entidades.nombre',
-                'entidades.cif',
-                'entidades.mail_ppal',
-                'entidades.tlf_ppal',
-                'mod110_expectantes.id as exp_id'
-            )
+            'mod110_expectantes.comentario as exp_comentario',
+            'entidades.nombre',
+            'entidades.cif',
+            'entidades.mail_ppal',
+            'entidades.tlf_ppal',
+            'mod110_expectantes.id as exp_id'
+        )
             ->where('mod110_expectantes.id', $id)
             ->first();
 
@@ -590,7 +512,8 @@ class Desktop extends Component
                 ]);
 
                 $msg = 'Socio expectante actualizado correctamente.';
-            } else {
+            }
+            else {
                 // DAR DE ALTA
                 $entidadId = DB::table('entidades')->insertGetId([
                     'nombre' => trim($this->expNombre . ' ' . $this->expApellidos),
@@ -622,7 +545,8 @@ class Desktop extends Component
                 'title' => '¡Éxito!',
                 'text' => $msg
             ]);
-        } catch (\Exception $e) {
+        }
+        catch (\Exception $e) {
             DB::rollBack();
             session()->flash('error', 'Error al guardar expectante: ' . $e->getMessage());
         }
@@ -661,7 +585,8 @@ class Desktop extends Component
                     'title' => '¡Eliminado!',
                     'text' => 'El socio expectante ha sido eliminado correctamente.'
                 ]);
-            } catch (\Exception $e) {
+            }
+            catch (\Exception $e) {
                 DB::rollBack();
                 $this->emit('swal:alert', [
                     'type' => 'error',
@@ -676,7 +601,8 @@ class Desktop extends Component
     {
         if ($this->sortField === $field) {
             $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
-        } else {
+        }
+        else {
             $this->sortField = $field;
             $this->sortDirection = 'asc';
         }
@@ -707,7 +633,8 @@ class Desktop extends Component
     {
         if ($this->sortMemberField === $field) {
             $this->sortMemberDirection = $this->sortMemberDirection === 'asc' ? 'desc' : 'asc';
-        } else {
+        }
+        else {
             $this->sortMemberField = $field;
             $this->sortMemberDirection = 'asc';
         }
@@ -739,7 +666,8 @@ class Desktop extends Component
                     'title' => 'Desvinculado',
                     'text' => 'El socio ha sido desvinculado de la cooperativa.'
                 ]);
-            } catch (\Exception $e) {
+            }
+            catch (\Exception $e) {
                 $this->emit('swal:alert', [
                     'type' => 'error',
                     'title' => 'Error',
@@ -791,7 +719,8 @@ class Desktop extends Component
                 'title' => '¡Vinculado!',
                 'text' => 'Socio vinculado correctamente a la cooperativa.'
             ]);
-        } catch (\Exception $e) {
+        }
+        catch (\Exception $e) {
             $this->emit('swal:alert', [
                 'type' => 'error',
                 'title' => 'Error',
@@ -818,9 +747,9 @@ class Desktop extends Component
                 DB::table('mod110_coop_socios')
                     ->where('id', $this->socioIdToInscribir)
                     ->update([
-                        'tipo_socio_id' => 2, // 2 = Socio Solicitante
-                        'updated_at' => now(),
-                    ]);
+                    'tipo_socio_id' => 2, // 2 = Socio Solicitante
+                    'updated_at' => now(),
+                ]);
 
                 // Ajustar contadores: decrementar expectantes, incrementar registrados
                 DB::table('mod110_cooperativas')
@@ -842,7 +771,8 @@ class Desktop extends Component
                     'title' => '¡Inscrito!',
                     'text' => 'El socio ha sido convertido a Solicitante correctamente.'
                 ]);
-            } catch (\Exception $e) {
+            }
+            catch (\Exception $e) {
                 DB::rollBack();
                 $this->emit('swal:alert', [
                     'type' => 'error',
@@ -934,7 +864,8 @@ class Desktop extends Component
                 ]);
 
                 $msg = 'Socio registrado actualizado correctamente.';
-            } else {
+            }
+            else {
                 // DAR DE ALTA (crear nuevo socio registrado sin cooperativa asignada)
                 $entidadId = DB::table('entidades')->insertGetId([
                     'nombre' => trim($this->regNombre . ' ' . $this->regApellidos),
@@ -960,7 +891,8 @@ class Desktop extends Component
                 'title' => '¡Éxito!',
                 'text' => $msg
             ]);
-        } catch (\Exception $e) {
+        }
+        catch (\Exception $e) {
             DB::rollBack();
             session()->flash('error', 'Error al guardar socio registrado: ' . $e->getMessage());
         }
@@ -1006,7 +938,8 @@ class Desktop extends Component
                     'title' => '¡Eliminado!',
                     'text' => 'El socio registrado ha sido eliminado correctamente.'
                 ]);
-            } catch (\Exception $e) {
+            }
+            catch (\Exception $e) {
                 DB::rollBack();
                 $this->emit('swal:alert', [
                     'type' => 'error',
@@ -1021,7 +954,8 @@ class Desktop extends Component
     {
         if ($this->sortRegField === $field) {
             $this->sortRegDirection = $this->sortRegDirection === 'asc' ? 'desc' : 'asc';
-        } else {
+        }
+        else {
             $this->sortRegField = $field;
             $this->sortRegDirection = 'asc';
         }
@@ -1131,7 +1065,8 @@ class Desktop extends Component
                 'text' => 'El archivo ha sido vinculado correctamente al socio.'
             ]);
 
-        } catch (\Exception $e) {
+        }
+        catch (\Exception $e) {
             DB::rollBack();
 
             // Si hubo error, eliminar el archivo del storage si se guardó
@@ -1214,7 +1149,8 @@ class Desktop extends Component
             if ($this->selectedInmuebleId) {
                 DB::table('mod110_inmuebles')->where('id', $this->selectedInmuebleId)->update($data);
                 $msg = 'Inmueble actualizado correctamente.';
-            } else {
+            }
+            else {
                 $data['created_at'] = now();
                 DB::table('mod110_inmuebles')->insert($data);
                 $msg = 'Inmueble creado correctamente.';
@@ -1226,7 +1162,8 @@ class Desktop extends Component
                 'title' => '¡Éxito!',
                 'text' => $msg
             ]);
-        } catch (\Exception $e) {
+        }
+        catch (\Exception $e) {
             session()->flash('error', 'Error al guardar inmueble: ' . $e->getMessage());
         }
     }
@@ -1260,7 +1197,8 @@ class Desktop extends Component
 
                 $this->editInmueble($newId);
             }
-        } catch (\Exception $e) {
+        }
+        catch (\Exception $e) {
             DB::rollBack();
             $this->emit('swal:alert', [
                 'type' => 'error',
@@ -1289,7 +1227,8 @@ class Desktop extends Component
                     'title' => '¡Eliminado!',
                     'text' => 'El inmueble ha sido eliminado correctamente.'
                 ]);
-            } catch (\Exception $e) {
+            }
+            catch (\Exception $e) {
                 $this->emit('swal:alert', [
                     'type' => 'error',
                     'title' => 'Error',
@@ -1303,7 +1242,8 @@ class Desktop extends Component
     {
         if ($this->sortInmuebleField === $field) {
             $this->sortInmuebleDirection = $this->sortInmuebleDirection === 'asc' ? 'desc' : 'asc';
-        } else {
+        }
+        else {
             $this->sortInmuebleField = $field;
             $this->sortInmuebleDirection = 'asc';
         }
@@ -1366,7 +1306,8 @@ class Desktop extends Component
             if ($this->selectedPromocionId) {
                 DB::table('mod110_coop_promociones')->where('id', $this->selectedPromocionId)->update($data);
                 $msg = 'Promoción actualizada correctamente.';
-            } else {
+            }
+            else {
                 $data['created_at'] = now();
                 DB::table('mod110_coop_promociones')->insert($data);
                 $msg = 'Promoción creada correctamente.';
@@ -1378,7 +1319,8 @@ class Desktop extends Component
                 'title' => '¡Éxito!',
                 'text' => $msg
             ]);
-        } catch (\Exception $e) {
+        }
+        catch (\Exception $e) {
             session()->flash('error', 'Error al guardar promoción: ' . $e->getMessage());
         }
     }
@@ -1414,7 +1356,8 @@ class Desktop extends Component
                     'title' => '¡Eliminada!',
                     'text' => 'La promoción ha sido eliminada correctamente.'
                 ]);
-            } catch (\Exception $e) {
+            }
+            catch (\Exception $e) {
                 $this->emit('swal:alert', [
                     'type' => 'error',
                     'title' => 'Error',
@@ -1428,18 +1371,13 @@ class Desktop extends Component
     {
         if ($this->sortPromocionField === $field) {
             $this->sortPromocionDirection = $this->sortPromocionDirection === 'asc' ? 'desc' : 'asc';
-        } else {
+        }
+        else {
             $this->sortPromocionField = $field;
             $this->sortPromocionDirection = 'asc';
         }
     }
 
-    public function openMailboxWith($email)
-    {
-        $this->draftEmail = $email;
-        $this->activePage = 'mensajes';
-        $this->closeUserDetail();
-    }
 
 
 
@@ -1488,11 +1426,13 @@ class Desktop extends Component
                 $this->userEmailsList = $emails->map(function ($e) {
                     return ['email' => $e->email, 'descripcion' => $e->descripcion ?? ''];
                 })->toArray();
-            } else {
+            }
+            else {
                 $this->userTelefonos = [];
                 $this->userEmailsList = [];
             }
-        } else {
+        }
+        else {
             $this->reset(['userNick', 'userNombre', 'userApellidos', 'userDNI', 'userEmail', 'userPuesto', 'userDepartamentoId', 'userDomicilio', 'userCPostal', 'userProvinciaId', 'userPoblacionId', 'userTelefonos', 'userEmailsList']);
         }
 
@@ -1554,7 +1494,8 @@ class Desktop extends Component
                         'pais' => 'ESPAÑA',
                         'updated_at' => now(),
                     ]);
-                } else {
+                }
+                else {
                     $personaId = DB::table('personas')->insertGetId([
                         'nombre' => $this->userNombre,
                         'apellidos' => $this->userApellidos,
@@ -1606,7 +1547,8 @@ class Desktop extends Component
                         ]);
                     }
                 }
-            } else {
+            }
+            else {
                 $personaId = DB::table('personas')->insertGetId([
                     'nombre' => $this->userNombre,
                     'apellidos' => $this->userApellidos,
@@ -1727,20 +1669,20 @@ class Desktop extends Component
                 ->leftJoin('mod110_m_tipos_inmueble', 'mod110_cooperativas.tipo_inmueble_id', '=', 'mod110_m_tipos_inmueble.id')
                 ->leftJoin('mod110_m_tipos_proteccion', 'mod110_cooperativas.tipo_proteccion_id', '=', 'mod110_m_tipos_proteccion.id')
                 ->select(
-                    'mod110_cooperativas.*',
-                    DB::raw('(SELECT COUNT(*) FROM mod110_coop_socios WHERE cooperativa_id = mod110_cooperativas.id AND tipo_socio_id = 1) as num_socios_expectantes'),
-                    DB::raw('(SELECT COUNT(*) FROM mod110_coop_socios WHERE cooperativa_id = mod110_cooperativas.id AND tipo_socio_id = 2) as num_socios_registrados'),
-                    DB::raw('(SELECT COUNT(*) FROM mod110_coop_socios WHERE cooperativa_id = mod110_cooperativas.id AND tipo_socio_id = 4) as num_socios_espera'),
-                    'entidades.nombre',
-                    'entidades.activa',
-                    'entidades.poblacion',
-                    'mod110_m_estados_cooperativas.acronimo as estado_acronimo',
-                    'mod110_m_estados_cooperativas.color_tipo as estado_color',
-                    'mod110_m_tipos_inmueble.acronimo as inmueble_acronimo',
-                    'mod110_m_tipos_inmueble.color_tipo as inmueble_color',
-                    'mod110_m_tipos_proteccion.acronimo as proteccion_acronimo',
-                    'mod110_m_tipos_proteccion.color_tipo as proteccion_color'
-                );
+                'mod110_cooperativas.*',
+                DB::raw('(SELECT COUNT(*) FROM mod110_coop_socios WHERE cooperativa_id = mod110_cooperativas.id AND tipo_socio_id = 1) as num_socios_expectantes'),
+                DB::raw('(SELECT COUNT(*) FROM mod110_coop_socios WHERE cooperativa_id = mod110_cooperativas.id AND tipo_socio_id = 2) as num_socios_registrados'),
+                DB::raw('(SELECT COUNT(*) FROM mod110_coop_socios WHERE cooperativa_id = mod110_cooperativas.id AND tipo_socio_id = 4) as num_socios_espera'),
+                'entidades.nombre',
+                'entidades.activa',
+                'entidades.poblacion',
+                'mod110_m_estados_cooperativas.acronimo as estado_acronimo',
+                'mod110_m_estados_cooperativas.color_tipo as estado_color',
+                'mod110_m_tipos_inmueble.acronimo as inmueble_acronimo',
+                'mod110_m_tipos_inmueble.color_tipo as inmueble_color',
+                'mod110_m_tipos_proteccion.acronimo as proteccion_acronimo',
+                'mod110_m_tipos_proteccion.color_tipo as proteccion_color'
+            );
 
             if (!$this->showFinished) {
                 $query->where('entidades.activa', 1);
@@ -1755,17 +1697,18 @@ class Desktop extends Component
             }
 
             $cooperativas = $query->get();
-        } elseif ($this->activePage === 'expectantes') {
+        }
+        elseif ($this->activePage === 'expectantes') {
             $query = DB::table('mod110_expectantes')
                 ->join('entidades', 'mod110_expectantes.entidad_id', '=', 'entidades.id')
                 ->select(
-                    'mod110_expectantes.*',
-                    'entidades.nombre',
-                    'entidades.mail_ppal',
-                    'entidades.tlf_ppal',
-                    'entidades.cif',
-                    'mod110_expectantes.id as exp_id'
-                );
+                'mod110_expectantes.*',
+                'entidades.nombre',
+                'entidades.mail_ppal',
+                'entidades.tlf_ppal',
+                'entidades.cif',
+                'mod110_expectantes.id as exp_id'
+            );
 
             if ($this->search) {
                 $query->where(function ($q) {
@@ -1776,21 +1719,22 @@ class Desktop extends Component
             }
 
             $expectantes = $query->orderBy($this->sortField, $this->sortDirection)->get();
-        } elseif ($this->activePage === 'socios') {
+        }
+        elseif ($this->activePage === 'socios') {
             // Cargar socios registrados (entidades que tienen al menos una relación en mod110_coop_socios)
             $query = DB::table('entidades')
                 ->join('mod110_coop_socios', 'entidades.id', '=', 'mod110_coop_socios.entidad_id')
                 ->leftJoin('mod110_m_tipos_socios', 'mod110_coop_socios.tipo_socio_id', '=', 'mod110_m_tipos_socios.id')
                 ->select(
-                    'entidades.id',
-                    'entidades.nombre',
-                    'entidades.cif',
-                    'entidades.mail_ppal',
-                    'entidades.tlf_ppal',
-                    'entidades.comentario',
-                    DB::raw('COUNT(DISTINCT mod110_coop_socios.cooperativa_id) as num_cooperativas'),
-                    DB::raw('GROUP_CONCAT(DISTINCT mod110_m_tipos_socios.acronimo SEPARATOR ", ") as tipos_socio')
-                )
+                'entidades.id',
+                'entidades.nombre',
+                'entidades.cif',
+                'entidades.mail_ppal',
+                'entidades.tlf_ppal',
+                'entidades.comentario',
+                DB::raw('COUNT(DISTINCT mod110_coop_socios.cooperativa_id) as num_cooperativas'),
+                DB::raw('GROUP_CONCAT(DISTINCT mod110_m_tipos_socios.acronimo SEPARATOR ", ") as tipos_socio')
+            )
                 ->groupBy('entidades.id', 'entidades.nombre', 'entidades.cif', 'entidades.mail_ppal', 'entidades.tlf_ppal', 'entidades.comentario');
 
             if ($this->searchReg) {
@@ -1802,20 +1746,21 @@ class Desktop extends Component
             }
 
             $registrados = $query->orderBy($this->sortRegField, $this->sortRegDirection)->get();
-        } elseif ($this->activePage === 'inmuebles') {
+        }
+        elseif ($this->activePage === 'inmuebles') {
             $query = DB::table('mod110_inmuebles')
                 ->leftJoin('mod110_coop_promociones', 'mod110_inmuebles.promocion_id', '=', 'mod110_coop_promociones.id')
                 ->leftJoin('mod110_m_tipos_inmueble', 'mod110_inmuebles.tipo_inmueble_id', '=', 'mod110_m_tipos_inmueble.id')
                 ->leftJoin('mod110_m_tipos_proteccion', 'mod110_inmuebles.tipo_proteccion_id', '=', 'mod110_m_tipos_proteccion.id')
                 ->select(
-                    'mod110_inmuebles.*',
-                    'mod110_coop_promociones.nombre_promocion as promocion_nombre',
-                    'mod110_m_tipos_inmueble.nombre as tipo_inmueble_nombre',
-                    'mod110_m_tipos_inmueble.acronimo as inmueble_acronimo',
-                    'mod110_m_tipos_inmueble.color_tipo as inmueble_color',
-                    'mod110_m_tipos_proteccion.acronimo as proteccion_acronimo',
-                    'mod110_m_tipos_proteccion.color_tipo as proteccion_color'
-                );
+                'mod110_inmuebles.*',
+                'mod110_coop_promociones.nombre_promocion as promocion_nombre',
+                'mod110_m_tipos_inmueble.nombre as tipo_inmueble_nombre',
+                'mod110_m_tipos_inmueble.acronimo as inmueble_acronimo',
+                'mod110_m_tipos_inmueble.color_tipo as inmueble_color',
+                'mod110_m_tipos_proteccion.acronimo as proteccion_acronimo',
+                'mod110_m_tipos_proteccion.color_tipo as proteccion_color'
+            );
 
             if ($this->searchInmueble) {
                 $query->where(function ($q) {
@@ -1841,15 +1786,16 @@ class Desktop extends Component
             }
 
             $inmuebles = $query->orderBy($this->sortInmuebleField, $this->sortInmuebleDirection)->get();
-        } elseif ($this->activePage === 'promociones') {
+        }
+        elseif ($this->activePage === 'promociones') {
             $query = DB::table('mod110_coop_promociones')
                 ->join('mod110_cooperativas', 'mod110_coop_promociones.cooperativa_id', '=', 'mod110_cooperativas.id')
                 ->join('entidades', 'mod110_cooperativas.entidad_id', '=', 'entidades.id')
                 ->select(
-                    'mod110_coop_promociones.*',
-                    'entidades.nombre as coop_nombre',
-                    DB::raw('(SELECT COUNT(*) FROM mod110_inmuebles WHERE promocion_id = mod110_coop_promociones.id) as num_inmuebles')
-                );
+                'mod110_coop_promociones.*',
+                'entidades.nombre as coop_nombre',
+                DB::raw('(SELECT COUNT(*) FROM mod110_inmuebles WHERE promocion_id = mod110_coop_promociones.id) as num_inmuebles')
+            );
 
             if ($this->searchPromocion) {
                 $query->where('mod110_coop_promociones.nombre_promocion', 'like', '%' . $this->searchPromocion . '%')
@@ -1857,19 +1803,20 @@ class Desktop extends Component
             }
 
             $promocionesList = $query->orderBy($this->sortPromocionField, $this->sortPromocionDirection)->get();
-        } elseif ($this->activePage === 'contactos') {
+        }
+        elseif ($this->activePage === 'contactos') {
             $query = DB::table('users')
                 ->leftJoin('mm_departamentos', 'users.departamento_id', '=', 'mm_departamentos.id')
                 ->leftJoin('personas', 'users.persona_id', '=', 'personas.id')
                 ->select(
-                    'users.*',
-                    'mm_departamentos.nombre as departamento_nombre',
-                    'personas.nombre as p_nombre',
-                    'personas.apellidos',
-                    DB::raw('(SELECT GROUP_CONCAT(telefono SEPARATOR "<br>") FROM telefonos WHERE telefonos.persona_id = personas.id) as tlf_ppal'),
-                    DB::raw('(SELECT GROUP_CONCAT(email SEPARATOR "<br>") FROM emails WHERE emails.persona_id = personas.id) as emails_list'),
-                    'personas.numero_documento as cif'
-                );
+                'users.*',
+                'mm_departamentos.nombre as departamento_nombre',
+                'personas.nombre as p_nombre',
+                'personas.apellidos',
+                DB::raw('(SELECT GROUP_CONCAT(telefono SEPARATOR "<br>") FROM telefonos WHERE telefonos.persona_id = personas.id) as tlf_ppal'),
+                DB::raw('(SELECT GROUP_CONCAT(email SEPARATOR "<br>") FROM emails WHERE emails.persona_id = personas.id) as emails_list'),
+                'personas.numero_documento as cif'
+            );
 
             if ($this->searchUser) {
                 $query->where(function ($q) {
@@ -1885,7 +1832,8 @@ class Desktop extends Component
 
             if ($this->userPerPage === 'all') {
                 $usersList = $query->get();
-            } else {
+            }
+            else {
                 $usersList = $query->paginate($this->userPerPage);
             }
 
@@ -1896,18 +1844,18 @@ class Desktop extends Component
                     ->leftJoin('m_provincias', 'personas.provincia', '=', 'm_provincias.id')
                     ->leftJoin('m_municipios', 'personas.poblacion', '=', 'm_municipios.id')
                     ->select(
-                        'users.*',
-                        'mm_departamentos.nombre as departamento_nombre',
-                        'personas.nombre as p_nombre',
-                        'personas.apellidos',
-                        'personas.domicilio',
-                        'm_municipios.nombre as poblacion_nombre',
-                        'm_provincias.provincia as provincia_nombre',
-                        'personas.cpostal',
-                        DB::raw('(SELECT GROUP_CONCAT(telefono SEPARATOR "<br>") FROM telefonos WHERE telefonos.persona_id = personas.id) as tlf_ppal'),
-                        DB::raw('(SELECT GROUP_CONCAT(email SEPARATOR "<br>") FROM emails WHERE emails.persona_id = personas.id) as emails_list'),
-                        'personas.numero_documento as cif'
-                    )
+                    'users.*',
+                    'mm_departamentos.nombre as departamento_nombre',
+                    'personas.nombre as p_nombre',
+                    'personas.apellidos',
+                    'personas.domicilio',
+                    'm_municipios.nombre as poblacion_nombre',
+                    'm_provincias.provincia as provincia_nombre',
+                    'personas.cpostal',
+                    DB::raw('(SELECT GROUP_CONCAT(telefono SEPARATOR "<br>") FROM telefonos WHERE telefonos.persona_id = personas.id) as tlf_ppal'),
+                    DB::raw('(SELECT GROUP_CONCAT(email SEPARATOR "<br>") FROM emails WHERE emails.persona_id = personas.id) as emails_list'),
+                    'personas.numero_documento as cif'
+                )
                     ->where('users.id', $this->selectedUserId)
                     ->first();
             }
@@ -1923,15 +1871,15 @@ class Desktop extends Component
                 ->leftJoin('mod110_m_estados_cooperativas', 'mod110_cooperativas.estado_id', '=', 'mod110_m_estados_cooperativas.id')
                 ->where('mod110_coop_socios.entidad_id', $this->selectedSocioIdForCoops)
                 ->select(
-                    'mod110_cooperativas.id as coop_id',
-                    'coop_entidades.nombre as coop_nombre',
-                    'mod110_cooperativas.registro_cooperativas',
-                    'mod110_m_tipos_socios.nombre as tipo_socio',
-                    'mod110_m_tipos_socios.acronimo as tipo_socio_acronimo',
-                    'mod110_m_tipos_socios.color_tipo as tipo_socio_color',
-                    'mod110_m_estados_cooperativas.acronimo as estado_acronimo',
-                    'mod110_m_estados_cooperativas.color_tipo as estado_color'
-                )
+                'mod110_cooperativas.id as coop_id',
+                'coop_entidades.nombre as coop_nombre',
+                'mod110_cooperativas.registro_cooperativas',
+                'mod110_m_tipos_socios.nombre as tipo_socio',
+                'mod110_m_tipos_socios.acronimo as tipo_socio_acronimo',
+                'mod110_m_tipos_socios.color_tipo as tipo_socio_color',
+                'mod110_m_estados_cooperativas.acronimo as estado_acronimo',
+                'mod110_m_estados_cooperativas.color_tipo as estado_color'
+            )
                 ->get();
         }
 
@@ -1941,13 +1889,13 @@ class Desktop extends Component
                 ->leftJoin('mod110_m_tipos_socios', 'mod110_coop_socios.tipo_socio_id', '=', 'mod110_m_tipos_socios.id')
                 ->where('mod110_coop_socios.cooperativa_id', $this->selectedCoopIdForMembers)
                 ->select(
-                    'mod110_coop_socios.id as socio_table_id',
-                    'mod110_coop_socios.tipo_socio_id',
-                    'mod110_m_tipos_socios.nombre as tipo_socio_nombre',
-                    'mod110_m_tipos_socios.acronimo as tipo_socio_acronimo',
-                    'mod110_m_tipos_socios.color_tipo as tipo_socio_color',
-                    'entidades.*'
-                );
+                'mod110_coop_socios.id as socio_table_id',
+                'mod110_coop_socios.tipo_socio_id',
+                'mod110_m_tipos_socios.nombre as tipo_socio_nombre',
+                'mod110_m_tipos_socios.acronimo as tipo_socio_acronimo',
+                'mod110_m_tipos_socios.color_tipo as tipo_socio_color',
+                'entidades.*'
+            );
 
             if ($this->searchMember) {
                 $memberQuery->where(function ($q) {
@@ -1974,21 +1922,21 @@ class Desktop extends Component
             'inmuebles' => $inmuebles ?? [],
             'promocionesList' => $promocionesList ?? [],
             'promociones' => DB::table('mod110_coop_promociones')
-                ->join('mod110_cooperativas', 'mod110_coop_promociones.cooperativa_id', '=', 'mod110_cooperativas.id')
-                ->join('entidades', 'mod110_cooperativas.entidad_id', '=', 'entidades.id')
-                ->select('mod110_coop_promociones.*', 'entidades.nombre as coop_nombre')
-                ->get(),
+            ->join('mod110_cooperativas', 'mod110_coop_promociones.cooperativa_id', '=', 'mod110_cooperativas.id')
+            ->join('entidades', 'mod110_cooperativas.entidad_id', '=', 'entidades.id')
+            ->select('mod110_coop_promociones.*', 'entidades.nombre as coop_nombre')
+            ->get(),
             'cooperativasList' => DB::table('mod110_cooperativas')
-                ->join('entidades', 'mod110_cooperativas.entidad_id', '=', 'entidades.id')
-                ->select('mod110_cooperativas.id', 'entidades.nombre')
-                ->where('entidades.activa', 1)
-                ->get(),
+            ->join('entidades', 'mod110_cooperativas.entidad_id', '=', 'entidades.id')
+            ->select('mod110_cooperativas.id', 'entidades.nombre')
+            ->where('entidades.activa', 1)
+            ->get(),
             'tiposArchivo' => DB::table('m_tipos_archivo')->orderBy('nombre')->get(),
             'usersList' => $usersList,
             'userToView' => $userToView ?? null,
             'departamentosList' => DB::table('mm_departamentos')->orderBy('nombre')->get(),
             'provinciasList' => DB::table('m_provincias')->orderBy('provincia')->get(),
-            'municipiosList' => $this->userProvinciaId ? DB::table('m_municipios')->where('provincia_id', $this->userProvinciaId)->orderBy('nombre')->get() : [],
+            'municipiosList' => $this->userProvinciaId ?DB::table('m_municipios')->where('provincia_id', $this->userProvinciaId)->orderBy('nombre')->get() : [],
         ])->layout('layouts.app');
     }
 }

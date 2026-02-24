@@ -48,7 +48,7 @@
                 style="background: linear-gradient(90deg, #042a3c, #0d4a66);">
                 <div
                     style="background: rgba(255, 255, 255, 0.95); width: 220px; height: 110px; border-radius: 16px; display: flex; align-items: center; justify-content: center; padding: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
-                    <img src="/imagenes/logo-axis-gestora_600.png" alt="Axis Gestora"
+                    <img src="/imagenes/logo-axis-gestora_600.png" alt="Intranext"
                         style="max-width: 100%; max-height: 100%; object-fit: contain;">
                 </div>
                 <div
