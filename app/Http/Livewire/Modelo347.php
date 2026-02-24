@@ -48,9 +48,10 @@ class Modelo347 extends Component
         $resultadosRaw = DB::table('d_frav_cab')
             ->leftJoin('entidades', 'd_frav_cab.cliente_id', '=', 'entidades.id')
             ->select(
-            'd_frav_cab.nif',
+            'd_frav_cab.cliente_id',
+            DB::raw("MAX(COALESCE(NULLIF(TRIM(d_frav_cab.nif), ''), entidades.cif, '')) as nif"),
             'entidades.mail_ppal',
-            DB::raw("COALESCE(NULLIF(TRIM(d_frav_cab.raz_social), ''), entidades.razon_social, entidades.nombre, 'Sin Nombre') as raz_social_calculada"),
+            DB::raw("MAX(COALESCE(NULLIF(TRIM(d_frav_cab.raz_social), ''), entidades.razon_social, entidades.nombre, 'Sin Nombre')) as raz_social_calculada"),
             DB::raw('SUM(d_frav_cab.baseimp + d_frav_cab.impiva) as total_anual'),
             DB::raw('SUM(CASE WHEN MONTH(d_frav_cab.fecha_emision) BETWEEN 1 AND 3 THEN d_frav_cab.baseimp + d_frav_cab.impiva ELSE 0 END) as t1'),
             DB::raw('SUM(CASE WHEN MONTH(d_frav_cab.fecha_emision) BETWEEN 4 AND 6 THEN d_frav_cab.baseimp + d_frav_cab.impiva ELSE 0 END) as t2'),
@@ -59,7 +60,7 @@ class Modelo347 extends Component
         )
             ->where('d_frav_cab.empresa_id', $this->empresa_id)
             ->whereYear('d_frav_cab.fecha_emision', $this->anio)
-            ->groupBy('d_frav_cab.nif', 'raz_social_calculada', 'entidades.mail_ppal')
+            ->groupBy('d_frav_cab.cliente_id', 'entidades.mail_ppal')
             ->having('total_anual', '>', 3005.06)
             ->orderBy('raz_social_calculada')
             ->get();
@@ -75,11 +76,11 @@ class Modelo347 extends Component
         })->toArray();
     }
 
-    public function prepareEmail($nif)
+    public function prepareEmail($cliente_id)
     {
         // Usar helper collect de forma segura o importar si es necesario
-        $this->selectedRow = \Illuminate\Support\Arr::first($this->resultados, function ($value) use ($nif) {
-            return $value['nif'] === $nif;
+        $this->selectedRow = \Illuminate\Support\Arr::first($this->resultados, function ($value) use ($cliente_id) {
+            return (string)$value['cliente_id'] === (string)$cliente_id;
         });
 
         if (!$this->selectedRow)

@@ -130,7 +130,7 @@
                                             class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300 text-right">
                                             {{ number_format($row['t4'], 2, ',', '.') }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <button wire:click="prepareEmail('{{ $row['nif'] }}')"
+                                            <button wire:click="prepareEmail('{{ $row['cliente_id'] }}')"
                                                 class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 p-2 rounded-full hover:bg-indigo-50 dark:hover:bg-gray-700 transition"
                                                 title="Enviar Email">
                                                 <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
