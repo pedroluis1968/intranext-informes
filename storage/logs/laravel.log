@@ -2175,3 +2175,9 @@ error:1416F086:SSL routines:tls_process_server_certificate:certificate verify fa
 #89 C:\\intranext-informes\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\resources\\server.php(16): require_once('C:\\\\intranext-in...')
 #90 {main}
 "} 
+[2026-02-24 10:11:57] local.ERROR: Error enviando 347: Unable to connect with STARTTLS: stream_socket_enable_crypto(): SSL operation failed with code 1. OpenSSL Error messages:
+error:1416F086:SSL routines:tls_process_server_certificate:certificate verify failed  
+[2026-02-24 10:13:10] local.ERROR: Error enviando 347: Unable to connect with STARTTLS: stream_socket_enable_crypto(): SSL operation failed with code 1. OpenSSL Error messages:
+error:1416F086:SSL routines:tls_process_server_certificate:certificate verify failed  
+[2026-02-24 10:14:09] local.ERROR: Error enviando 347: Unable to connect with STARTTLS: stream_socket_enable_crypto(): SSL operation failed with code 1. OpenSSL Error messages:
+error:1416F086:SSL routines:tls_process_server_certificate:certificate verify failed  

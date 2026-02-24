@@ -80,7 +80,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>AXIS GESTORA</h1>
+            <h1>INTRANEXT</h1>
         </div>
         <div class="content">
             <h2>¡Hola, <span class="highlight">{{ $nombreCompleto }}</span>!</h2>
@@ -90,11 +90,11 @@
                 régimen de cooperativa que mejor se adapten a tus preferencias.</p>
             <p>Estamos encantados de acompañarte en el proceso de encontrar tu futuro hogar.</p>
 
-            <p>Saludos,<br>El equipo de <strong>Axis Gestora</strong></p>
+            <p>Saludos,<br>El equipo de <strong>Intranext</strong></p>
         </div>
         <div class="footer">
             <p>Este es un mensaje automático, por favor no respondas directamente a este correo.</p>
-            <p>&copy; {{ date('Y') }} Axis Gestora de Cooperativas. Todos los derechos reservados.</p>
+            <p>&copy; {{ date('Y') }} Intranext. Todos los derechos reservados.</p>
         </div>
     </div>
 </body>

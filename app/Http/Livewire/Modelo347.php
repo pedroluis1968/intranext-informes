@@ -96,10 +96,10 @@ class Modelo347 extends Component
         $body .= "Datos del informe:\n";
         $body .= "--------------------------\n";
         $body .= "Total Anual: " . number_format($this->selectedRow['total_anual'], 2, ',', '.') . " €\n";
-        $body .= "1er Trimestre: " . number_format($this->selectedRow['t1'], 2, ',', '.') . " €\n";
-        $body .= "2do Trimestre: " . number_format($this->selectedRow['t2'], 2, ',', '.') . " €\n";
-        $body .= "3er Trimestre: " . number_format($this->selectedRow['t3'], 2, ',', '.') . " €\n";
-        $body .= "4to Trimestre: " . number_format($this->selectedRow['t4'], 2, ',', '.') . " €";
+        $body .= "1º Trimestre: " . number_format($this->selectedRow['t1'], 2, ',', '.') . " €\n";
+        $body .= "2º Trimestre: " . number_format($this->selectedRow['t2'], 2, ',', '.') . " €\n";
+        $body .= "3º Trimestre: " . number_format($this->selectedRow['t3'], 2, ',', '.') . " €\n";
+        $body .= "4º Trimestre: " . number_format($this->selectedRow['t4'], 2, ',', '.') . " €";
 
         $this->emailBody = $body;
         $this->showEmailModal = true;
@@ -121,8 +121,8 @@ class Modelo347 extends Component
         }
 
         try {
-            // Usamos Mail::send con una clausula simple para asegurar el envío
-            Mail::raw($this->emailBody, function ($message) {
+            // Enviamos usando una vista para asegurar el charset UTF-8 y permitir HTML básico
+            Mail::send('emails.modelo347', ['body' => $this->emailBody], function ($message) {
                 $message->from('intranext@intranext.es', 'Intranext')
                     ->to($this->emailTo)
                     ->subject($this->emailSubject);

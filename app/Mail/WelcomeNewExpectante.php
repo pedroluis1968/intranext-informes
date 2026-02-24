@@ -30,7 +30,7 @@ class WelcomeNewExpectante extends Mailable
      */
     public function build()
     {
-        return $this->subject('¡Bienvenido a Axis Gestora!')
+        return $this->subject('¡Bienvenido a Intranext!')
             ->from(config('mail.from.address'), config('mail.from.name'))
             ->view('emails.welcome-expectante');
     }

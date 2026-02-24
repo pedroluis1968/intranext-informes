@@ -227,7 +227,7 @@ unset($__errorArgs, $__bag); ?>
                                     </div>
                                 </div>
                                 <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse gap-2">
-                                    <button type="button" wire:click="sendEmailTest" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:w-auto sm:text-sm">
+                                    <button type="button" wire:click="sendEmail" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:w-auto sm:text-sm">
                                         Enviar Email
                                     </button>
                                     <button type="button" wire:click="$set('showEmailModal', false)" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm">
@@ -244,4 +244,5 @@ unset($__errorArgs, $__bag); ?>
             <?php endif; ?>
         </div>
     </div>
-</div><?php /**PATH C:\intranext-informes\resources\views/livewire/modelo347.blade.php ENDPATH**/ ?>
+</div>
+<?php /**PATH C:\intranext-informes\resources\views/livewire/modelo347.blade.php ENDPATH**/ ?>
